@@ -11,7 +11,6 @@ def show (image):
     pygame.display.flip ()
 
 def getRGBfromI(RGBint):
-    print(RGBint)
     '''
     Converts the integer value of a pixel's color to RGB
     args: RGBint (int) - The pixel's integer value
@@ -59,6 +58,31 @@ def findShift(image,ar,xsize,ysize):
         #This simply stops shifting once the accuraccy starts going down. In theory this could be inaccurate, but checking every possible shift is inefficient and in the vast majority of images unnecessary
     return maxshift
 
+def fillSimilar(image,xshift,colorLeeway):
+    '''
+    Fills in similar pixels in red.
+    args:
+        image (pygame.Surface) - The find the difference image
+        xshift (int) - The amount the right image is shifted from the center
+        colorLeeway (int) - The amount of "leeway" between similar colors (similar colors will be considered the same if they're within the colorLeeway)
+
+    '''
+    imagecopy = image.copy()
+    ar = pygame.PixelArray(imagecopy)
+    for x in range(image.get_rect().size[0]//2):
+        for y in range(image.get_rect().size[1]):
+            try:
+                if ((getRGBfromI(ar[x,y])[0]-getRGBfromI(ar[x+xshift,y])[0])**2+(getRGBfromI(ar[x,y])[1]-getRGBfromI(ar[x+xshift,y])[1])**2+(getRGBfromI(ar[x,y])[2]-getRGBfromI(ar[x+xshift,y])[2])**2)**.5 <= 250-(colorLeeway)*50:
+                    try:
+                        # if ar[x+1,y] == ar[x+xDiff + 1,y] or ar[x-1,y] == ar[x+xDiff - 1,y] or ar[x,y+1] == ar[x+xDiff,y+1] or ar[x,y-1] == ar[x+xDiff,y-1]:
+                        ar[x,y] = (225,0,0)
+
+                    except IndexError:
+                        continue
+            except IndexError:
+                break
+    del(ar)
+    return imagecopy
 
 def main():
     pygame.init()
@@ -88,33 +112,21 @@ def main():
         xDiff = image.get_rect().size[0]//2
 
         ar = pygame.PixelArray(image)
-
         xshift = findShift(image,ar,xsize,ysize)
         print(xsize)
         ar[xshift] = (255,0,0)
-        val = 4
+        del(ar)
+
+
+        colorLeeway = 4
         showOrig = True
         displaydone = False
-        valchange = True
+        colorLeewayChange = True
         while not displaydone:
-            if valchange: #Prevents this from repeating when nothing changes
-                imagecopy = image.copy()
-                ar = pygame.PixelArray(imagecopy)
-                for x in range(image.get_rect().size[0]//2):
-                    for y in range(image.get_rect().size[1]):
-                        try:
-                            if ((getRGBfromI(ar[x,y])[0]-getRGBfromI(ar[x+xshift,y])[0])**2+(getRGBfromI(ar[x,y])[1]-getRGBfromI(ar[x+xshift,y])[1])**2+(getRGBfromI(ar[x,y])[2]-getRGBfromI(ar[x+xshift,y])[2])**2)**.5 <= 250-(val)*50:
-                                try:
-                                    # if ar[x+1,y] == ar[x+xDiff + 1,y] or ar[x-1,y] == ar[x+xDiff - 1,y] or ar[x,y+1] == ar[x+xDiff,y+1] or ar[x,y-1] == ar[x+xDiff,y-1]:
-                                    ar[x,y] = (225,0,0)
-
-                                except IndexError:
-                                    continue
-                        except IndexError:
-                            break
-                valchange = False
-                del(ar)
-                print(val)
+            if colorLeewayChange: #Prevents this from repeating when nothing changes
+                newimage = fillSimilar(image,xshift,colorLeeway)
+                colorLeewayChange = False
+                print(colorLeeway)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -124,25 +136,23 @@ def main():
                 keys = pygame.key.get_pressed()
                 if event.type == pygame.KEYDOWN:
                     if(event.key == pygame.K_RIGHT):
-                        val += 1
-                        valchange = True
+                        colorLeeway += 1
+                        colorLeewayChange = True
                     if(event.key == pygame.K_LEFT):
-                        val -= 1
-                        valchange = True
+                        colorLeeway -= 1
+                        colorLeewayChange = True
                     if(event.key == pygame.K_SPACE):
                         if showOrig:
                             showOrig = False
                         else:
                             showOrig = True
 
-
-
             screen.blit(background,(0,0))
             pygame.display.flip ()
             if showOrig:
                 show(image)
             else:
-                show(imagecopy)
+                show(newimage)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
