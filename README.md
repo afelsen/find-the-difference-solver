@@ -11,7 +11,7 @@ This pygame application compares two side by side images and highlights the diff
 * Mouse click: Switches to the next image
 
 ## Image format requirements:
-1. There must be one image on the left side and one image on the right side.
+1. There must be one image on the left side and one image on the right side. (Any vertical shift will not work).
   * It is okay if the images are separated (for example a line runs down the middle or there is whitespace in between).
   * However, there *cannot* be space between the left image and the left side of the screen.
 2. The image must be named "Spot" + imagenumber + ".png" and put in the assets folder.
