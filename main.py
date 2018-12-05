@@ -21,7 +21,7 @@ def getRGBfromI(RGBint):
     red =   (RGBint >> 16) & 255
     return red, green, blue
 
-def findShift(image,ar,xsize,ysize):
+def findShift(image,ar):
     '''
     Finds how far the second image is shifted over.
     args:
@@ -31,17 +31,17 @@ def findShift(image,ar,xsize,ysize):
         ysize(int) - The height of the image
     returns: maxshift (int) - The number of pixels the right image is shifted from the center
     '''
-    print(type(image))
-    print(type(ar))
-    print(type(xsize))
-    print(type(ysize))
+    xsize = image.get_rect().size[0]
+    ysize = image.get_rect().size[1]
+
+
     max = 0
     maxshift = 0
     # This is basically checking how similar the left pixels are to the right pixels. It then shifts over the starting point on the right until they are maximally similar
-    for xshift in range(xsize//2,xsize):
+    for xshift in range(xsize//2-5,xsize):
         accum = 0
-        for x in range(image.get_rect().size[0]//2):
-            for y in range(image.get_rect().size[1]):
+        for x in range(xsize//2):
+            for y in range(ysize):
                 try:
                     if ((getRGBfromI(ar[x,y])[0]-getRGBfromI(ar[x+xshift,y])[0])**2+(getRGBfromI(ar[x,y])[1]-getRGBfromI(ar[x+xshift,y])[1])**2+(getRGBfromI(ar[x,y])[2]-getRGBfromI(ar[x+xshift,y])[2])**2)**.5 <= 100:
                         accum += 1
@@ -69,16 +69,18 @@ def fillSimilar(image,xshift,colorLeeway):
     '''
     imagecopy = image.copy()
     ar = pygame.PixelArray(imagecopy)
+    xsize = image.get_rect().size[0]
+    ysize = image.get_rect().size[1]
     for x in range(image.get_rect().size[0]//2):
         for y in range(image.get_rect().size[1]):
             try:
                 if ((getRGBfromI(ar[x,y])[0]-getRGBfromI(ar[x+xshift,y])[0])**2+(getRGBfromI(ar[x,y])[1]-getRGBfromI(ar[x+xshift,y])[1])**2+(getRGBfromI(ar[x,y])[2]-getRGBfromI(ar[x+xshift,y])[2])**2)**.5 <= 250-(colorLeeway)*50:
                     try:
-                        # if ar[x+1,y] == ar[x+xDiff + 1,y] or ar[x-1,y] == ar[x+xDiff - 1,y] or ar[x,y+1] == ar[x+xDiff,y+1] or ar[x,y-1] == ar[x+xDiff,y-1]:
-                        ar[x,y] = (225,0,0)
 
+                        ar[x,y] = (255,0,0)
+                        ar[x+xshift,y] = (0,255,0)
                     except IndexError:
-                        continue
+                        pass
             except IndexError:
                 break
     del(ar)
@@ -98,11 +100,12 @@ def main():
             done = True
             break
 
-        #Below is useful for scaling images.
-        # xsizeorig = image.get_rect().size[0]
-        # ysizeorig = image.get_rect().size[1]
-        # divisor = ysizeorig//300
-        # image = pygame.transform.scale(image,(xsizeorig//divisor,300))
+        #Below is useful for scaling images. Messes with the proportions a little bit though
+        xsizeorig = image.get_rect().size[0]
+        ysizeorig = image.get_rect().size[1]
+        height = 500
+        divisor = ysizeorig//height +1
+        image = pygame.transform.scale(image,(xsizeorig//divisor,height))
 
         xsize = image.get_rect().size[0]
         ysize = image.get_rect().size[1]
@@ -112,7 +115,7 @@ def main():
         xDiff = image.get_rect().size[0]//2
 
         ar = pygame.PixelArray(image)
-        xshift = findShift(image,ar,xsize,ysize)
+        xshift = findShift(image,ar)
         print(xsize)
         ar[xshift] = (255,0,0)
         del(ar)
@@ -131,8 +134,6 @@ def main():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     raise SystemExit
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    displaydone = True
                 keys = pygame.key.get_pressed()
                 if event.type == pygame.KEYDOWN:
                     if(event.key == pygame.K_RIGHT):
@@ -146,6 +147,9 @@ def main():
                             showOrig = False
                         else:
                             showOrig = True
+                    if(event.key == pygame.K_RETURN):
+                        displaydone = True
+
 
             screen.blit(background,(0,0))
             pygame.display.flip ()
