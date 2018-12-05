@@ -83,6 +83,11 @@ def fillSimilar(image,xshift,colorLeeway):
                         pass
             except IndexError:
                 break
+            try:
+                if getRGBfromI(arcopy[x+1,y]) == (225,0,0) or getRGBfromI(arcopy[x-1,y]) == (225,0,0) or getRGBfromI(arcopy[x,y+1]) == (225,0,0) or getRGBfromI(arcopy[x,y-1]) == (225,0,0):
+                    ar[x,y] = (225,0,0)
+            except IndexError:
+                pass
     del(ar)
     return imagecopy
 
