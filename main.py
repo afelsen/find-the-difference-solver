@@ -58,7 +58,7 @@ def findShift(image,ar):
         #This simply stops shifting once the accuraccy starts going down. In theory this could be inaccurate, but checking every possible shift is inefficient and in the vast majority of images unnecessary
     return maxshift
 
-def fillSimilar(image,xshift,colorLeeway):
+def fillSimilar(image,xshift,colorLeeway,removeOutline):
     '''
     Fills in similar pixels in red.
     args:
@@ -69,32 +69,115 @@ def fillSimilar(image,xshift,colorLeeway):
     '''
     imagecopy = image.copy()
     ar = pygame.PixelArray(imagecopy)
+    arorig = ar[::]
+    arcopy = ar[::]
     xsize = image.get_rect().size[0]
     ysize = image.get_rect().size[1]
-    for x in range(image.get_rect().size[0]//2):
-        for y in range(image.get_rect().size[1]):
+
+    for x in range(xsize//2):
+        for y in range(ysize):
             try:
                 if ((getRGBfromI(ar[x,y])[0]-getRGBfromI(ar[x+xshift,y])[0])**2+(getRGBfromI(ar[x,y])[1]-getRGBfromI(ar[x+xshift,y])[1])**2+(getRGBfromI(ar[x,y])[2]-getRGBfromI(ar[x+xshift,y])[2])**2)**.5 <= 250-(colorLeeway)*50:
                     try:
-
                         ar[x,y] = (255,0,0)
-                        ar[x+xshift,y] = (0,255,0)
+                        arcopy[x,y] = (255,0,0)
+
                     except IndexError:
                         pass
+                else:
+                    ar[x+xshift,y] = (255,0,0)
+
+
+
             except IndexError:
                 break
-            try:
-                if getRGBfromI(arcopy[x+1,y]) == (225,0,0) or getRGBfromI(arcopy[x-1,y]) == (225,0,0) or getRGBfromI(arcopy[x,y+1]) == (225,0,0) or getRGBfromI(arcopy[x,y-1]) == (225,0,0):
-                    ar[x,y] = (225,0,0)
-            except IndexError:
-                pass
+    for i in range(removeOutline):
+        for x in range(xsize//2):
+            for y in range(ysize):
+                try:
+                    if getRGBfromI(arcopy[x+1,y]) == (255,0,0) or getRGBfromI(arcopy[x-1,y]) == (255,0,0) or getRGBfromI(arcopy[x,y+1]) == (255,0,0) or getRGBfromI(arcopy[x,y-1]) == (255,0,0):
+                        #print(i)
+                        ar[x,y] = (255,0,0)
+                except IndexError:
+                    pass
+        for x in range(xsize//2,xsize):
+            for y in range(ysize):
+                try:
+                    if getRGBfromI(arcopy[x+1,y]) != (255,0,0) or getRGBfromI(arcopy[x-1,y]) != (255,0,0) or getRGBfromI(arcopy[x,y+1]) != (255,0,0) or getRGBfromI(arcopy[x,y-1]) != (255,0,0):
+                        # print(arcopy[x,y-1])
+
+                        ar[x,y] = arorig[x,y]
+
+
+                except IndexError:
+
+                    pass
+
+
+        arcopy = pygame.PixelArray(imagecopy.copy())
+
+
+    #Below is a piece of code that divides each difference into a group. In theory it could work but it takes too long to run
+    # ultimateAreaPoints = []
+    # done = False
+    # accum = 0
+    # while not done:
+    #     startingPoint = None
+    #     for c in range(ysize):
+    #         for r in range(xsize//2):
+    #             if ar[r,c] != 16711680 and (r,c) not in ultimateAreaPoints:
+    #                 startingPoint = (r,c)
+    #                 break
+    #     print(startingPoint)
+    #     if startingPoint == None: #If all areas have been mapped
+    #         done = True
+    #         continue
+    #
+    #     currentPoints = [startingPoint]
+    #     for p in currentPoints:
+    #         # print(currentPoints)
+    #         print(p)
+    #         accum +=1
+    #         print(accum)
+    #         try:
+    #             if (p[0]+1,p[1]) not in currentPoints and p[0]<xsize:
+    #                 if ar[p[0]+1,p[1]] != 16711680:
+    #                     currentPoints.append((p[0]+1,p[1]))
+    #                     ar[p[0]+1,p[1]] = (0,255,0)
+    #         except IndexError:
+    #             pass
+    #         try:
+    #             if (p[0]-1,p[1]) not in currentPoints and p[0]>0:
+    #                 if ar[p[0]-1,p[1]] != 16711680:
+    #                     currentPoints.append((p[0]-1,p[1]))
+    #                     ar[p[0]-1,p[1]] = (0,255,0)
+    #         except IndexError:
+    #             pass
+    #         try:
+    #             if (p[0],p[1]+1) not in currentPoints and p[1]<ysize:
+    #                 if ar[p[0],p[1]+1] != 16711680:
+    #                     currentPoints.append((p[0],p[1]+1))
+    #                     ar[p[0],p[1]+1] = (0,255,0)
+    #         except IndexError:
+    #             pass
+    #         try:
+    #             if (p[0],p[1]-1) not in currentPoints and p[1]>0:
+    #                 if ar[p[0],p[1]-1] != 16711680:
+    #                     currentPoints.append((p[0],p[1]-1))
+    #                     ar[p[0],p[1]-1] = (0,255,0)
+    #         except IndexError:
+    #             pass
+    #     for i in currentPoints:
+    #         ultimateAreaPoints.append(i)
+    #     print(done)
+
     del(ar)
     return imagecopy
 
 def main():
     pygame.init()
     done = False
-    filenumber = 1
+    filenumber = 2
     while (not done):
 
         filename = "assets/Spot" + str(filenumber) + ".png"
@@ -130,9 +213,10 @@ def main():
         showOrig = True
         displaydone = False
         colorLeewayChange = True
+        removeOutline = 0
         while not displaydone:
             if colorLeewayChange: #Prevents this from repeating when nothing changes
-                newimage = fillSimilar(image,xshift,colorLeeway)
+                newimage = fillSimilar(image,xshift,colorLeeway,removeOutline)
                 colorLeewayChange = False
                 print(colorLeeway)
 
@@ -154,6 +238,12 @@ def main():
                             showOrig = True
                     if(event.key == pygame.K_RETURN):
                         displaydone = True
+                    if(event.key == pygame.K_UP):
+                        removeOutline += 1
+                        colorLeewayChange = True
+                    if(event.key == pygame.K_DOWN):
+                        removeOutline -= 1
+                        colorLeewayChange = True
 
 
             screen.blit(background,(0,0))
