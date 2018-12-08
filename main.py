@@ -240,12 +240,12 @@ def main():
                             showOrig = True
                     if(event.key == pygame.K_RETURN):
                         displaydone = True
-                    if(event.key == pygame.K_UP):
-                        removeOutline += 1
-                        colorLeewayChange = True
-                    if(event.key == pygame.K_DOWN):
-                        removeOutline -= 1
-                        colorLeewayChange = True
+                    # if(event.key == pygame.K_UP):
+                    #     removeOutline += 1
+                    #     colorLeewayChange = True
+                    # if(event.key == pygame.K_DOWN):
+                    #     removeOutline -= 1
+                    #     colorLeewayChange = True
 
 
             screen.blit(background,(0,0))
