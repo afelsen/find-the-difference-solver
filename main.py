@@ -91,30 +91,32 @@ def fillSimilar(image,xshift,colorLeeway,removeOutline):
 
             except IndexError:
                 break
-    for i in range(removeOutline):
-        for x in range(xsize//2):
-            for y in range(ysize):
-                try:
-                    if getRGBfromI(arcopy[x+1,y]) == (255,0,0) or getRGBfromI(arcopy[x-1,y]) == (255,0,0) or getRGBfromI(arcopy[x,y+1]) == (255,0,0) or getRGBfromI(arcopy[x,y-1]) == (255,0,0):
-                        #print(i)
-                        ar[x,y] = (255,0,0)
-                except IndexError:
-                    pass
-        for x in range(xsize//2,xsize):
-            for y in range(ysize):
-                try:
-                    if getRGBfromI(arcopy[x+1,y]) != (255,0,0) or getRGBfromI(arcopy[x-1,y]) != (255,0,0) or getRGBfromI(arcopy[x,y+1]) != (255,0,0) or getRGBfromI(arcopy[x,y-1]) != (255,0,0):
-                        # print(arcopy[x,y-1])
 
-                        ar[x,y] = arorig[x,y]
-
-
-                except IndexError:
-
-                    pass
-
-
-        arcopy = pygame.PixelArray(imagecopy.copy())
+    #Removing outline functionality. Very buggy, not yet working.
+    # for i in range(removeOutline):
+    #     for x in range(xsize//2):
+    #         for y in range(ysize):
+    #             try:
+    #                 if getRGBfromI(arcopy[x+1,y]) == (255,0,0) or getRGBfromI(arcopy[x-1,y]) == (255,0,0) or getRGBfromI(arcopy[x,y+1]) == (255,0,0) or getRGBfromI(arcopy[x,y-1]) == (255,0,0):
+    #                     #print(i)
+    #                     ar[x,y] = (255,0,0)
+    #             except IndexError:
+    #                 pass
+    #     for x in range(xsize//2,xsize):
+    #         for y in range(ysize):
+    #             try:
+    #                 if getRGBfromI(arcopy[x+1,y]) != (255,0,0) or getRGBfromI(arcopy[x-1,y]) != (255,0,0) or getRGBfromI(arcopy[x,y+1]) != (255,0,0) or getRGBfromI(arcopy[x,y-1]) != (255,0,0):
+    #                     # print(arcopy[x,y-1])
+    #
+    #                     ar[x,y] = arorig[x,y]
+    #
+    #
+    #             except IndexError:
+    #
+    #                 pass
+    #
+    #
+    #     arcopy = pygame.PixelArray(imagecopy.copy())
 
 
     #Below is a piece of code that divides each difference into a group. In theory it could work but it takes too long to run
@@ -177,7 +179,7 @@ def fillSimilar(image,xshift,colorLeeway,removeOutline):
 def main():
     pygame.init()
     done = False
-    filenumber = 2
+    filenumber = 1
     while (not done):
 
         filename = "assets/Spot" + str(filenumber) + ".png"
